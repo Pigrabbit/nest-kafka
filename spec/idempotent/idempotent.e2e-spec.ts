@@ -1,13 +1,14 @@
 import { INestApplication, Logger } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 import { CustomKafkaRequestDeserializer, CustomServerKafka } from '../../src/custom-kafka';
-import { InMemoryMessageIdempotentChecker } from '../../src/idempotent';
+import { DuplicateMessageController, InMemoryMessageIdempotentChecker } from '../../src/idempotent';
 import { MessageProducer, MessageProducerModule } from '../../src/message-producer';
 import { setUpKafkaTopic, sleep } from '../util';
 import { TestController } from './test.controller';
 import { TestProvider } from './test.provider';
 
-describe('KafkaConsumer with CustomServerKafka and CustomKafkaRequestDeserializer', () => {
+jest.setTimeout(20000);
+describe('KafkaConsumer Idempotency', () => {
   const BROKER = 'localhost:9092';
   const TOPIC = 'queuing.testeventgroup.json';
 
@@ -24,23 +25,29 @@ describe('KafkaConsumer with CustomServerKafka and CustomKafkaRequestDeserialize
     }).compile();
     messageProducer = producerModule.get<MessageProducer>(MessageProducer);
 
+    const inMemoryIdempotentChecker = new InMemoryMessageIdempotentChecker();
     const consumerModule: TestingModule = await Test.createTestingModule({
-      controllers: [TestController],
-      providers: [TestProvider],
+      controllers: [DuplicateMessageController, TestController],
+      providers: [TestProvider, { provide: 'MESSAGE_IDEMPOTENT_CHECKER', useValue: inMemoryIdempotentChecker }],
     })
       .setLogger(new Logger())
       .compile();
-
     testProvider = consumerModule.get<TestProvider>(TestProvider);
+
     consumerApp = consumerModule.createNestApplication();
     consumerApp.enableShutdownHooks();
     consumerApp.connectMicroservice({
       strategy: new CustomServerKafka({
         client: { brokers: [BROKER] },
-        deserializer: new CustomKafkaRequestDeserializer(new InMemoryMessageIdempotentChecker()),
+        deserializer: new CustomKafkaRequestDeserializer(inMemoryIdempotentChecker),
+        consumer: { groupId: 'nest-jest-group', heartbeatInterval: 2000, sessionTimeout: 6000 },
       }),
     });
     await consumerApp.startAllMicroservices();
+  });
+
+  afterEach(() => {
+    jest.clearAllMocks();
   });
 
   afterAll(async () => {
@@ -48,17 +55,21 @@ describe('KafkaConsumer with CustomServerKafka and CustomKafkaRequestDeserialize
     await tearDownKafkaTopic();
   });
 
-  it('should trigger a method which has @EventPattern with according pattern', async () => {
-    const testFunctionMock = jest.spyOn(testProvider, 'test').mockImplementationOnce(() => jest.fn());
+  it('should prevent handling same message twice', async () => {
+    const processEventSpy = jest
+      .spyOn(testProvider, 'processEvent')
+      .mockImplementation(async (payload: unknown) => Logger.log(`processEvent mock`));
 
-    messageProducer.enqueue({
-      eventGroup: 'testEventGroup',
-      eventName: 'testEventName',
-      payload: { text: 'Hello, World!' },
-    });
-    await sleep(1000);
+    // kafkf consumer group will be rebalanced when idx equals 1
+    for (let idx = 0; idx < 3; idx += 1) {
+      messageProducer.enqueue({
+        eventGroup: 'testEventGroup',
+        eventName: 'testEventName',
+        payload: { text: 'Hello, World!', seq: idx + 1 },
+      });
+    }
+    await sleep(12000);
 
-    expect(testFunctionMock).toHaveBeenCalledTimes(1);
-    expect(testFunctionMock).toHaveBeenCalledWith(expect.objectContaining({ text: 'Hello, World!' }));
+    expect(processEventSpy).toHaveBeenCalledTimes(3);
   });
 });
