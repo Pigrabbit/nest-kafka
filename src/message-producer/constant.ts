@@ -1,1 +1,1 @@
-export const kafkaClientInjectionToken = Symbol('KAFKA_PRODUCER_CLIENT');
+export const KAFKA_CLIENT_INJECTION_TOKEN = Symbol('KAFKA_PRODUCER_CLIENT');

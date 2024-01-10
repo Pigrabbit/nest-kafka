@@ -3,11 +3,11 @@ import { ClientKafka } from '@nestjs/microservices';
 import { v4 } from 'uuid';
 import { HandlerPatternTopicTransformer } from '../common';
 import { KafkaEvent } from '../custom-kafka/type';
-import { kafkaClientInjectionToken } from './constant';
+import { KAFKA_CLIENT_INJECTION_TOKEN } from './constant';
 import { EnqueueParams, LogParams, ProduceParams } from './type';
 
 export class MessageProducer {
-  constructor(@Inject(kafkaClientInjectionToken) private readonly client: ClientKafka) {}
+  constructor(@Inject(KAFKA_CLIENT_INJECTION_TOKEN) private readonly client: ClientKafka) {}
 
   enqueue<Payload>(params: EnqueueParams<Payload>) {
     const { eventGroup, eventName, payload } = params;

@@ -2,7 +2,7 @@ import { ConfigModule } from '@nestjs-library/config';
 import { Module } from '@nestjs/common';
 import { ClientsModule, Transport } from '@nestjs/microservices';
 import { KafkaClientConfig } from '../config';
-import { kafkaClientInjectionToken } from './constant';
+import { KAFKA_CLIENT_INJECTION_TOKEN } from './constant';
 import { MessageProducer } from './message-producer';
 
 @Module({
@@ -16,7 +16,7 @@ import { MessageProducer } from './message-producer';
             options: { producerOnlyMode: true, client: kafkaClientConfig },
           }),
           inject: [KafkaClientConfig],
-          name: kafkaClientInjectionToken,
+          name: KAFKA_CLIENT_INJECTION_TOKEN,
         },
       ],
     }),
