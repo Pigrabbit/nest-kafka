@@ -1,10 +1,10 @@
+import { ConfigModule } from '@nestjs-library/config';
 import { Module } from '@nestjs/common';
-import { AppController } from './app.controller';
 import { AppService } from './app.service';
+import { KafkaClientConfig } from './config';
 
 @Module({
-  imports: [],
-  controllers: [AppController],
+  imports: [ConfigModule.forFeature([KafkaClientConfig])],
   providers: [AppService],
 })
 export class AppModule {}
