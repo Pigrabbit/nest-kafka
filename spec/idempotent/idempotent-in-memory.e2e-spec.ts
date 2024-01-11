@@ -8,7 +8,7 @@ import { TestController } from './test.controller';
 import { TestProvider } from './test.provider';
 
 jest.setTimeout(20000);
-describe('KafkaConsumer Idempotency', () => {
+describe('KafkaConsumer Idempotency InMemory', () => {
   const BROKER = 'localhost:9092';
   const TOPIC = 'queuing.testeventgroup.json';
 
