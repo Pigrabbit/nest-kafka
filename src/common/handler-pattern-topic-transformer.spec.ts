@@ -1,4 +1,4 @@
-import { HandlerPatternTopicTransformer } from './pattern-topic-transformer';
+import { HandlerPatternTopicTransformer } from './handler-pattern-topic-transformer';
 import { DataFormat, Message } from '../custom-kafka/type';
 
 describe('HandlerPatternTopicTransformer', () => {
@@ -6,7 +6,7 @@ describe('HandlerPatternTopicTransformer', () => {
     it('should convert handlerPattern to kafka topic', () => {
       const handlerPattern: `${Message}__${string}__${string}__${DataFormat}` =
         'queuing__TestEventGroup__TestEventName__json';
-      const kafkaTopic = HandlerPatternTopicTransformer.handlerPatternToTopic(handlerPattern);
+      const kafkaTopic = HandlerPatternTopicTransformer.toTopic(handlerPattern);
       expect(kafkaTopic).toBe('queuing.testeventgroup.json');
     });
   });

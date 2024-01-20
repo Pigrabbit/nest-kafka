@@ -14,7 +14,7 @@ export class CustomServerKafka extends ServerKafka {
 
     const subscribePattern = (pattern: string) =>
       consumer.subscribe({
-        topic: HandlerPatternTopicTransformer.handlerPatternToTopic(pattern),
+        topic: HandlerPatternTopicTransformer.toTopic(pattern),
         ...consumerSubscribeOptions,
       });
     await Promise.all(registeredPatterns.map(subscribePattern));

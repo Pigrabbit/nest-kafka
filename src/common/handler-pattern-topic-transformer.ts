@@ -4,16 +4,8 @@ export class HandlerPatternTopicTransformer {
   private static readonly PATTERN_DIVIDER = '__';
   private static readonly TOPIC_DIVIDER = '.';
 
-  /**
-   *
-   * @usgage ServerKafka에서 사용
-   * @param handlerPattern
-   * @example Message__EventGroup__EventName__DataFormat
-   * @returns kafkaTopic
-   * @example Message.DataName.DataFormat
-   */
-  static handlerPatternToTopic(pattern: string): string {
-    const [message, eventGroup, , dataFormat] = pattern
+  static toTopic(handlerPattern: string): string {
+    const [message, eventGroup, , dataFormat] = handlerPattern
       .split(HandlerPatternTopicTransformer.PATTERN_DIVIDER)
       .map((str) => str.toLowerCase());
     return [message, eventGroup, dataFormat].join(HandlerPatternTopicTransformer.TOPIC_DIVIDER);
@@ -31,9 +23,6 @@ export class HandlerPatternTopicTransformer {
     return [message, dataName.toLocaleLowerCase(), dataFormat].join(HandlerPatternTopicTransformer.TOPIC_DIVIDER);
   }
 
-  /**
-   * @usage @EventHandler() 데코레이터에서 사용
-   */
   static createHandlerPatternFrom({
     eventGroup,
     eventName,

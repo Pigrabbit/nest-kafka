@@ -6,7 +6,10 @@ import { HandlerPatternTopicTransformer } from '../common';
 import { KafkaEvent } from './type';
 
 export class CustomKafkaRequestDeserializer implements Deserializer {
-  constructor(private readonly messageIdempotentChecker: MessageIdempotentChecker) {}
+  constructor(
+    private readonly messageIdempotentChecker: MessageIdempotentChecker,
+    private readonly duplicatedPattern = 'duplicated',
+  ) {}
 
   async deserialize(
     data: KafkaRequest<KafkaEvent<unknown>>,
@@ -21,7 +24,7 @@ export class CustomKafkaRequestDeserializer implements Deserializer {
 
     if (await this.messageIdempotentChecker.isDuplicate(kafkaEvent.id)) {
       Logger.warn(`Duplicated event id=${kafkaEvent.id}`);
-      return { pattern: 'duplicated', data: undefined };
+      return { pattern: this.duplicatedPattern, data: undefined };
     }
 
     return {

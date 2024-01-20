@@ -1,1 +1,1 @@
-export * from './pattern-topic-transformer';
+export * from './handler-pattern-topic-transformer';
