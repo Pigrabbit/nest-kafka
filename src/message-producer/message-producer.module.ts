@@ -1,7 +1,5 @@
-import { ConfigModule } from '@nestjs-library/config';
 import { Module } from '@nestjs/common';
 import { ClientsModule, Transport } from '@nestjs/microservices';
-import { KafkaClientConfig } from '../config';
 import { KAFKA_CLIENT_INJECTION_TOKEN } from './constant';
 import { MessageProducer } from './message-producer';
 
@@ -10,12 +8,13 @@ import { MessageProducer } from './message-producer';
     ClientsModule.registerAsync({
       clients: [
         {
-          imports: [ConfigModule.forFeature([KafkaClientConfig])],
-          useFactory: (kafkaClientConfig: KafkaClientConfig) => ({
+          useFactory: () => ({
             transport: Transport.KAFKA,
-            options: { producerOnlyMode: true, client: kafkaClientConfig },
+            options: {
+              producerOnlyMode: true,
+              client: { brokers: ['localhost:9092'], connectionTimeout: 5000, authenticationTimeout: 5000 },
+            },
           }),
-          inject: [KafkaClientConfig],
           name: KAFKA_CLIENT_INJECTION_TOKEN,
         },
       ],

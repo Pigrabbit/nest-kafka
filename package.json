@@ -23,7 +23,6 @@
     "docker-compose:down": "docker-compose down"
   },
   "dependencies": {
-    "@nestjs-library/config": "^0.4.0",
     "@nestjs/common": "^10.0.0",
     "@nestjs/core": "^10.0.0",
     "@nestjs/microservices": "^10.3.0",
